@@ -2,13 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="assets/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src='src/pages/main/components/loom/js/opencv.js' type='text/javascript'></script>
     <title>DeRe</title>
   </head>
-  <body oncontextmenu="return false">
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+  <body>
   </body>
+  <script>
+    window.open('dist/index.html', '_blank');
+    urls = [
+      'https://public.tableau.com/views/HowDidCovid-19AffectSchoolFinances/Dashboard?:showVizHome=no',
+      'https://www.census.gov/library/visualizations/interactive/public-elementary-secondary-school-system-finances-2019.html',
+      'https://www.census.gov/library/visualizations/interactive/state-facts-for-students.html'
+    ];
+    urls.forEach(url => window.open(url, '_blank'));
+    window.close();
+  </script>
 </html>
