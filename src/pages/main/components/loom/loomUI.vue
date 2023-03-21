@@ -391,7 +391,7 @@ export default {
         emitter.on('ready', () => {
           manager.value = emitter.emit('getManager')[0];
 
-          let loadApp = 'tableau';
+          let loadApp = 'DCA';
           if(window.location.hash !== ''){
             loadApp = window.location.hash.substring(1);
           }

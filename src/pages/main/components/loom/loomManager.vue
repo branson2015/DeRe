@@ -121,7 +121,11 @@ export default {
         if(appConfig.value['startState'] && appConfig.value['startState']['appMode']){
           const am = appConfig.value['startState']['appMode'];
           am.forEach(app => {
-            const appLoc = props.directory + '/' + app;
+            let appLoc;
+            if(appConfig.value['directory'])
+              appLoc = appConfig.value['directory']
+            else
+              appLoc = props.directory + '/' + app;
             const appName = appLoc.split('/').filter(t => t != '').slice(-1)[0].replaceAll(' ', '_');
             appModes.push({
               directory: appLoc,
@@ -281,14 +285,46 @@ export default {
       });
     };
     const getModifierFiles = function(url){
-      const queryUrl = 'https://api.github.com/repos/branson2015/DeRe_Apps/git/trees/main?recursive=1';
-      return fetch(queryUrl).then(res => res.json()).then(json => {
-        const data = json.tree.map(data => data.path);
+      const repoQueryUrl = 'https://api.github.com/repos/branson2015/DeRe_Apps/git/trees/main?recursive=1';
+      const localQueryURL = 'http://localhost:8000/apps'
+
+      return Promise.all([fetch(repoQueryUrl), fetch(localQueryURL).catch(() => {
+        return {ok: false};
+      }).then((res) => {
+        if(!res.ok) return new Response('[]');
+        return res;
+      })])
+        .then(res => Promise.all(res.map(r => r.json())))
+        .then(jsons => {
+        const [githubjson, localFileNames] = jsons;
+
+        const data = githubjson.tree.map(data => data.path);
         const demoFileNames = data.filter(path => path.substr(0,"demos/demos/".length) === "demos/demos/").map(file => file.substr("demos/demos/".length));
         const rvaFileNames = data.filter(path => path.substr(0, "RVA/".length) === "RVA/").map(file => file.substr("RVA/".length));
         modifierFileNames.value = demoFileNames;
 
-        const files = modifierFileNames.value.map(file => fetch(`${props.modifier_directory}/${file}`).then(res => res.json()));
+        const demofiles = modifierFileNames.value.map(file => fetch(`${props.modifier_directory}/${file}`).then(res => res.json()));
+        let localFiles = [];
+        
+        if(localFileNames.length > 0){
+          localFiles = localFileNames.map(fileName => {
+            const file = fileName.slice(0, -4);
+            modifierFileNames.value.push(file);
+            return {
+              "hidden": {},
+              [file] : {},
+              "directory": `http://localhost:8000/apps/${file}`,
+              "startState": {
+                "saveName": file,
+                "appMode": [
+                  file
+                ],
+                "current_state": 1
+              }
+            };
+          })
+        }
+        
         
         const rvaFiles = rvaFileNames.map(fileName => {
           const file = fileName.slice(0, -4);
@@ -306,8 +342,8 @@ export default {
           };
         });
 
-        return Promise.all(files).then(files => {
-          modifierFiles.value = [...files, ...rvaFiles];
+        return Promise.all(demofiles).then(files => {
+          modifierFiles.value = [...demofiles, ...localFiles, ...rvaFiles];
         });
       });
     }
