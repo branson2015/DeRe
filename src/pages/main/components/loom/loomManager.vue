@@ -342,7 +342,7 @@ export default {
           };
         });
 
-        return Promise.all(demofiles).then(files => {
+        return Promise.all(demofiles).then(demofiles => {
           modifierFiles.value = [...demofiles, ...localFiles, ...rvaFiles];
         });
       });
